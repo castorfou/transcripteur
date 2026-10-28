@@ -1,0 +1,79 @@
+site_name: transcripteur
+site_description: Outils de transcription multi langue avec differents plugins : transcription brute, detection d'interlocuteurs, creation de sous-titres, ... et peut se connecter à différentes entrées ou sorties audio
+site_url: https://castorfou.github.io/transcripteur
+repo_url: https://github.com/castorfou/transcripteur
+use_directory_urls: true
+
+# Exclude internal directories from documentation
+exclude_docs: |
+  claude/
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - toc.follow
+    - content.code.annotate
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __spam
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji
+  - pymdownx.magiclink
+
+plugins:
+  - search
+  - awesome-nav
+  - include-markdown
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      fallback_to_build_date: true
+
+extra_javascript:
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/toc-collapse.js
+
+extra_css:
+  - overrides.css/custom-table-header.css
+  - overrides.css/toc-collapse.css

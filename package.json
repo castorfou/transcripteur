@@ -1,0 +1,13 @@
+{
+  "name": "transcripteur",
+  "version": "1.0.0",
+  "description": "Outils de transcription multi langue avec differents plugins : transcription brute, detection d'interlocuteurs, creation de sous-titres, ... et peut se connecter à différentes entrées ou sorties audio",
+  "scripts": {
+    "dev": "echo 'Add your development scripts here'",
+    "build": "echo 'Add your build scripts here'"
+  },
+  "keywords": ["data-science", "python", "node"],
+  "author": "castorfou",
+  "license": "MIT",
+  "devDependencies": {}
+}
