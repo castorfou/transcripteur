@@ -25,7 +25,9 @@
         "UV_PROJECT_ENVIRONMENT": "/tmp/venv",
         "CLAUDE_CODE_ENABLE_TODO_TOOLS": "1",
         // Config Claude Code partagée (montée sur ~/.claude) : y place aussi .claude.json
-        "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+        // Audio de l'hôte : socket PipeWire-Pulse monté depuis l'hôte (voir mounts)
+        "PULSE_SERVER": "unix:/run/host-pulse/native"
     },
     "customizations": {
         "vscode": {
@@ -114,12 +116,16 @@
         "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached,readonly",
         "source=${localEnv:HOME}/.cache/uv,target=/home/vscode/.cache/uv,type=bind,consistency=cached",
         "source=/etc/localtime,target=/etc/localtime.host,type=bind,consistency=cached,readonly",
-        "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+        "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind",
+        // Audio de l'hôte (#7) : dossier du socket PipeWire-Pulse (le dossier plutôt que le
+        // socket, pour survivre à un redémarrage de PipeWire), via le lien que prépare
+        // prepare_host_audio.sh sur l'hôte
+        "source=${localEnv:HOME}/.devcontainer/host-pulse,target=/run/host-pulse,type=bind,readonly"
     ],
     // Exécuté sur l'hôte avant le montage : crée les sources et les points de montage imbriqués
     // dans le HOME (sinon Docker les crée en root), recopie l'historique Claude Code de l'ancien
     // HOME du projet, puis vérifie chaque montage
-    "initializeCommand": "mkdir -p \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.ssh\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.cache/pre-commit\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.cache/uv\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.config/gh\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.claude\" \"${localEnv:HOME}/.cache/pre-commit-devcontainers\" \"${localEnv:HOME}/.cache/uv\" && mkdir -p -m 700 \"${localEnv:HOME}/.ssh\" \"${localEnv:HOME}/.config/gh-devcontainers\" \"${localEnv:HOME}/.config/claude-devcontainers\" \"${localEnv:HOME}/.config/claude-devcontainers/ide\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.claude-ide\" && DEVCONTAINER_WORKSPACE_FOLDER_BASENAME=\"${localWorkspaceFolderBasename}\" DEVCONTAINER_ID=\"${devcontainerId}\" bash \"${localWorkspaceFolder}/.devcontainer/scripts/migrate_claude_history.sh\" && (cd \"${localWorkspaceFolder}\" && DEVCONTAINER_WORKSPACE_FOLDER_BASENAME=\"${localWorkspaceFolderBasename}\" DEVCONTAINER_ID=\"${devcontainerId}\" bash .devcontainer/scripts/check_mounts.sh --host)",
+    "initializeCommand": "mkdir -p \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.ssh\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.cache/pre-commit\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.cache/uv\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.config/gh\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.claude\" \"${localEnv:HOME}/.cache/pre-commit-devcontainers\" \"${localEnv:HOME}/.cache/uv\" && mkdir -p -m 700 \"${localEnv:HOME}/.ssh\" \"${localEnv:HOME}/.config/gh-devcontainers\" \"${localEnv:HOME}/.config/claude-devcontainers\" \"${localEnv:HOME}/.config/claude-devcontainers/ide\" \"${localEnv:HOME}/.devcontainer/homes/${localWorkspaceFolderBasename}-${devcontainerId}/.claude-ide\" && DEVCONTAINER_WORKSPACE_FOLDER_BASENAME=\"${localWorkspaceFolderBasename}\" DEVCONTAINER_ID=\"${devcontainerId}\" bash \"${localWorkspaceFolder}/.devcontainer/scripts/migrate_claude_history.sh\" && bash \"${localWorkspaceFolder}/.devcontainer/scripts/prepare_host_audio.sh\" && (cd \"${localWorkspaceFolder}\" && DEVCONTAINER_WORKSPACE_FOLDER_BASENAME=\"${localWorkspaceFolderBasename}\" DEVCONTAINER_ID=\"${devcontainerId}\" bash .devcontainer/scripts/check_mounts.sh --host)",
     // Configuration du shell et de l'environnement
     "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
     // À chaque démarrage : recrée /tmp/venv s'il manque (/tmp peut être un tmpfs vidé au démarrage)

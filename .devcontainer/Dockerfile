@@ -8,3 +8,12 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
 # Créer le répertoire cache avec les bons droits avant le montage du volume uv
 # Sans ça, Docker crée /home/vscode/.cache en root lors du mount, ce qui bloque pre-commit
 RUN mkdir -p /home/vscode/.cache && chown vscode:vscode /home/vscode/.cache
+
+# Audio de l'hôte (#7) : clients PulseAudio (pactl, parecord) pour parler au PipeWire de l'hôte
+# via le socket monté (voir mounts et PULSE_SERVER dans devcontainer.json), et ALSA redirigé
+# vers Pulse pour que les bibliothèques ALSA (cpal, PortAudio) passent aussi par l'hôte
+# plutôt que d'ouvrir /dev/snd directement
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends pulseaudio-utils libasound2-plugins \
+    && rm -rf /var/lib/apt/lists/* \
+    && printf 'pcm.!default pulse\nctl.!default pulse\n' > /etc/asound.conf
