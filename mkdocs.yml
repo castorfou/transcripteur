@@ -1,5 +1,5 @@
 site_name: transcripteur
-site_description: Outils de transcription multi langue avec differents plugins : transcription brute, detection d'interlocuteurs, creation de sous-titres, ... et peut se connecter à différentes entrées ou sorties audio
+site_description: "Outils de transcription multi langue avec differents plugins : transcription live, transcription brute, detection d'interlocuteurs, creation de sous-titres, ... et peut se connecter à différentes entrées ou sorties audio"
 site_url: https://castorfou.github.io/transcripteur
 repo_url: https://github.com/castorfou/transcripteur
 use_directory_urls: true
