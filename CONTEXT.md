@@ -41,3 +41,21 @@ _Avoid_ : traduction (qui est un Enrichissement distinct)
 
 **Langue parlée** :
 La langue détectée (ou forcée) pour un passage d'audio ; elle peut changer au cours d'une même écoute.
+
+**Texte provisoire** :
+Transcription affichée au plus vite pendant que l'énoncé est encore prononcé ; elle peut encore changer.
+_Avoid_ : partiel, brouillon
+
+**Texte définitif** :
+Transcription d'un énoncé terminé, qui ne change plus ; c'est elle que reçoivent le texte brut et les sous-titres.
+_Avoid_ : validé, final
+
+### Évaluation
+
+**Corpus d'essai** :
+Ensemble d'extraits audio, avec leur transcription de référence quand elle existe, qui sert à juger la qualité et la latence de l'outil.
+_Avoid_ : dataset, jeu de test
+
+**Banc d'essai** :
+Outil de développement qui fournit l'audio du Corpus d'essai directement au Moteur, au rythme du temps réel, pour mesurer qualité et latence de façon reproductible. Ce n'est pas une Source et il ne fait pas partie de l'outil livré.
+_Avoid_ : Source fichier, lecteur de fichier
