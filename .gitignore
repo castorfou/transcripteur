@@ -165,3 +165,6 @@ yarn.lock
 *.tsbuildinfo
 .next/
 .cache/
+
+# Claude Code (worktrees des sous-agents)
+.claude/worktrees/
