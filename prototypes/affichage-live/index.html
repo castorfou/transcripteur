@@ -1,0 +1,637 @@
+<title>Affichage live Transcripteur</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<!--
+  PROTOTYPE JETABLE. Ne pas livrer.
+  Question : à quoi doivent ressembler l'affichage live et l'écran de lancement de Session ?
+  Quatre variantes de structure, commutables par la barre du bas ou par le hash (#a à #d).
+  D assemble les retours sur A et B : fenêtre compacte déplaçable, dépliable en historique.
+  Le texte est simulé : aucun Moteur, aucune Source. L'état vit en mémoire.
+-->
+<style>
+/* Concept : un outil de lecture. La typographie sert la lisibilité à distance ; le reste s'efface. */
+:root {
+  --bg: #f3f5f6; --panel: #ffffff; --fg: #15202b; --muted: #5a6875; --line: #d5dce2;
+  --accent: #0b6e8f; --on-accent: #ffffff; --warn: #9a5b00; --fix: #ffe08a; --fix-fg: #15202b;
+  --read: "Atkinson Hyperlegible", "Noto Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+  --stage: #0d1216; --stage-fg: #f5f7f8; --stage-muted: #9fb0bc; --stage-line: #33414c;
+  --stage-accent: #6fd0ee; --stage-warn: #ffc56b; --strip: rgba(8, 12, 15, .78);
+  --bar: #1b1033; --bar-fg: #f4eeff; --bar-muted: #c3b5e6;
+  --barh: 96px; --scale: 1;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11171c; --panel: #182128; --fg: #e9eef1; --muted: #9dacb7; --line: #2c3943;
+  --accent: #6fd0ee; --on-accent: #06222c; --warn: #ffc56b; --fix: #6b5310; --fix-fg: #fff3cf; color-scheme: dark
+} }
+:root[data-theme="dark"] {
+  --bg: #11171c; --panel: #182128; --fg: #e9eef1; --muted: #9dacb7; --line: #2c3943;
+  --accent: #6fd0ee; --on-accent: #06222c; --warn: #ffc56b; --fix: #6b5310; --fix-fg: #fff3cf; color-scheme: dark
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--read); font-size: 16px; }
+* { box-sizing: border-box; }
+button, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#app { height: 100%; padding-bottom: var(--barh); display: flex; flex-direction: column; min-height: 0; }
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.lvl { display: inline-block; width: 64px; height: 8px; background: var(--line); border-radius: 2px; overflow: hidden; vertical-align: middle; }
+.lvl i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s linear; }
+mark.fix { background: var(--fix); color: var(--fix-fg); border-radius: 2px; animation: fade 2.4s forwards; }
+@keyframes fade { to { background: transparent; color: inherit; } }
+.prov { font-style: italic; color: var(--muted); }
+.hc .prov { font-style: italic; color: inherit; }
+.chip { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 2px 6px; border: 1px solid currentColor; border-radius: 3px; white-space: nowrap; }
+.chip.unknown { border-style: dashed; opacity: .7; }
+
+/* Variante A : fil de lecture */
+.a-launch { max-width: 620px; width: 100%; margin: 0 auto; padding-block: 28px; display: grid; gap: 22px; overflow-y: auto; }
+.a-launch h1 { font-size: 26px; margin: 0; }
+.a-launch fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.a-launch legend { font-weight: 700; padding: 0 0 6px; }
+.a-opt { display: flex; gap: 12px; align-items: center; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; text-align: left; width: 100%; }
+.a-opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.a-opt span.grow { flex: 1; min-width: 0; }
+.a-opt small { display: block; color: var(--muted); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { padding: 8px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.go { padding: 14px 22px; background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px; font-weight: 700; font-size: 18px; }
+.a-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.a-top .sp { flex: 1; }
+.tool { padding: 5px 10px; background: transparent; border: 1px solid var(--line); border-radius: 5px; }
+.stop { padding: 5px 12px; background: transparent; border: 1px solid var(--warn); color: var(--warn); border-radius: 5px; font-weight: 700; }
+.a-alert { padding-block: 8px; background: var(--panel); color: var(--warn); border-bottom: 1px solid var(--line); font-weight: 700; }
+.a-scroll { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
+.a-col { max-width: 44em; margin: 0 auto; padding-block: 24px 40px; font-size: calc(21px * var(--scale)); line-height: 1.5; }
+.a-u { display: grid; grid-template-columns: 5.2em minmax(0, 1fr); gap: 0 12px; margin-bottom: .6em; }
+.a-u time { font-family: var(--mono); font-size: .58em; color: var(--muted); padding-top: .55em; }
+.a-lang { margin: 1.1em 0 .5em 6.4em; font-size: .62em; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+.a-back { position: sticky; bottom: 12px; display: block; margin: 0 auto; padding: 8px 16px; background: var(--accent); color: var(--on-accent); border: 0; border-radius: 20px; font-weight: 700; }
+
+/* Variante B : bandeau flottant sur la vidéo */
+.b { flex: 1; min-height: 0; position: relative; overflow: hidden; background: linear-gradient(180deg, #1c2a35 0%, #0b1014 100%); color: var(--stage-fg); }
+.b-slide { position: absolute; top: 9%; left: 50%; transform: translateX(-50%); width: min(62%, 620px); aspect-ratio: 16 / 9; max-width: 100%; background: #e9eef1; color: #15202b; padding: 3%; font-weight: 700; font-size: clamp(14px, 2.4vw, 28px); }
+.b-speaker { position: absolute; bottom: 0; right: 14%; width: 90px; height: 230px; background: #05080a; border-radius: 46px 46px 0 0; }
+.b-tag { position: absolute; top: 10px; left: max(16px, env(safe-area-inset-left, 0px)); font-family: var(--mono); font-size: 11px; color: var(--stage-muted); }
+.b-strip { position: absolute; left: 50%; transform: translateX(-50%); width: min(920px, calc(100% - 32px)); background: var(--strip); border: 1px solid var(--stage-line); border-radius: 8px; padding: 10px 14px; display: grid; gap: 6px; }
+.hc .b-strip { background: #000; }
+.b-strip.bas { bottom: 12px; } .b-strip.haut { top: 28px; }
+.b-text { font-size: calc(24px * var(--scale)); line-height: 1.3; min-height: 2.6em; display: flex; flex-direction: column; justify-content: flex-end; }
+.b-text.open { max-height: 40vh; overflow-y: auto; justify-content: flex-start; }
+.b-text .prov { color: var(--stage-muted); }
+.hc .b-text .prov { color: inherit; }
+.b-text .old { color: var(--stage-muted); }
+.b-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--stage-muted); }
+.b-row .sp { flex: 1; }
+.b-row button { padding: 3px 8px; background: transparent; border: 1px solid var(--stage-line); border-radius: 4px; color: var(--stage-fg); }
+.b-row button[aria-pressed="true"] { background: var(--stage-accent); color: #06222c; border-color: var(--stage-accent); }
+.b-row .b-go { background: var(--stage-accent); color: #06222c; border: 0; font-weight: 700; padding: 6px 14px; }
+.b-sep { width: 1px; height: 18px; background: var(--stage-line); }
+.b-warn { color: var(--stage-warn); font-weight: 700; font-size: 14px; }
+.b .lvl { background: var(--stage-line); } .b .lvl i { background: var(--stage-accent); }
+
+/* Variante C : prompteur */
+.c { flex: 1; min-height: 0; background: var(--stage); color: var(--stage-fg); display: flex; flex-direction: column; }
+.c-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-block: 12px; color: var(--stage-muted); font-size: 14px; }
+.c-meta .sp { flex: 1; }
+.c-meta button { padding: 3px 8px; background: transparent; border: 1px solid var(--stage-line); border-radius: 4px; color: var(--stage-fg); }
+.c .lvl { background: var(--stage-line); } .c .lvl i { background: var(--stage-accent); }
+.c-stage { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: .4em; font-size: calc(clamp(28px, 5vw, 58px) * var(--scale)); line-height: 1.22; max-width: 22em; width: 100%; margin: 0 auto; }
+.c-prev { font-size: .5em; color: var(--stage-muted); }
+.c-now .prov { color: #c4d2db; }
+.hc .c-now .prov { color: inherit; }
+.c-name { font-size: .36em; font-weight: 700; color: var(--stage-accent); letter-spacing: .05em; }
+.c-warn { color: var(--stage-warn); font-size: .5em; font-weight: 700; }
+.c-launch { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px; max-width: 34em; width: 100%; margin: 0 auto; overflow-y: auto; padding-block: 20px; }
+.c-phrase { font-size: clamp(26px, 4.4vw, 44px); line-height: 1.4; margin: 0; }
+.c-phrase button { background: transparent; border: 0; border-bottom: 3px dashed var(--stage-accent); color: var(--stage-accent); padding: 0 2px; font-weight: 700; }
+.c-go { align-self: flex-start; padding: 16px 34px; background: var(--stage-accent); color: #06222c; border: 0; border-radius: 40px; font-size: 22px; font-weight: 700; }
+.c-hint { color: var(--stage-muted); margin: 0; }
+
+/* Variante D : fenêtre compacte, dépliable en historique */
+.d-win { position: absolute; width: min(540px, calc(100% - 32px)); display: flex; flex-direction: column; min-height: 0;
+  background: rgb(8 12 15 / calc(var(--op, 75) * 1%)); border: 1px solid var(--stage-line); border-radius: 8px; color: var(--stage-fg); text-shadow: 0 1px 3px #000; }
+.d-win.hist { height: min(560px, calc(100% - 24px)); }
+.d-head { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 13px; color: var(--stage-muted); cursor: grab; touch-action: none; user-select: none; border-bottom: 1px solid var(--stage-line); }
+.d-head .sp { flex: 1; }
+.d-grip { letter-spacing: 1px; font-family: var(--mono); }
+.d-histwrap { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
+.d-zone { padding: 6px 12px 0; text-shadow: none; }
+.d-zone button { padding: 1px 7px; font-size: 12px; }
+.d-hist { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 12px 12px; font-size: calc(19px * var(--sh, 1)); line-height: 1.45; border-left: 3px solid transparent; }
+.d-gap { font-size: .62em; font-style: italic; color: var(--stage-muted); margin: .7em 0; }
+.d-hist.away { border-left-color: var(--stage-warn); }
+.d-u { margin-bottom: .5em; }
+.d-win time { font-family: var(--mono); font-size: .62em; color: var(--stage-muted); margin-right: .4em; }
+.d-lang { font-size: .62em; font-weight: 700; color: var(--stage-accent); margin: .9em 0 .35em; letter-spacing: .04em; }
+.d-away { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); white-space: nowrap; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis;
+  padding: 6px 14px; background: var(--stage-warn); color: #2a1c00; border: 0; border-radius: 16px; font-weight: 700; font-size: 14px; text-shadow: none; }
+.d-livebox { border-top: 1px solid var(--stage-line); padding: 8px 12px 4px; }
+.d-win:not(.hist) .d-livebox { border-top: 0; }
+.d-livelabel { font-size: 11px; font-weight: 700; color: var(--stage-accent); letter-spacing: .05em; }
+.d-live { height: 3.9em; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; font-size: calc(22px * var(--sl, 1)); line-height: 1.3; }
+.d-live .prov { color: inherit; opacity: .78; }
+.d-old { opacity: .72; }
+.d-status { height: 20px; padding: 0 12px; font-size: 13px; font-weight: 700; color: var(--stage-warn); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-tools { padding: 6px 12px 10px; text-shadow: none; display: grid; gap: 6px; }
+.b-row button:disabled { opacity: .4; cursor: default; }
+.d-pause { min-width: 84px; }
+.d-tools label { display: flex; align-items: center; gap: 6px; }
+.d-tools input { width: 92px; accent-color: var(--stage-accent); }
+.d-form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: center; padding: 12px; font-size: 14px; }
+.d-form > span { color: var(--stage-muted); }
+.d-form .b-row { color: inherit; }
+.d-start { padding: 0 12px 12px; display: flex; justify-content: flex-end; }
+.d-start .b-go { background: var(--stage-accent); color: #06222c; border: 0; border-radius: 5px; font-weight: 700; padding: 9px 20px; text-shadow: none; }
+
+/* Fin de Session */
+.end { max-width: 560px; width: 100%; margin: auto; padding-block: 24px; display: grid; gap: 14px; }
+.end h2 { margin: 0; font-size: 24px; }
+.end ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.end .note { color: var(--muted); margin: 0; }
+.end-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+.end-row .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.end-row small { display: block; color: var(--muted); }
+.end-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.end-wrap { flex: 1; min-height: 0; overflow-y: auto; display: flex; }
+
+/* Barre du prototype : ne fait pas partie du design évalué */
+#bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; justify-content: center; pointer-events: none;
+  padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+#bar > div { pointer-events: auto; background: var(--bar); color: var(--bar-fg); border-radius: 12px; padding: 7px 10px; box-shadow: 0 4px 18px rgba(0, 0, 0, .35); max-width: 100%; display: grid; gap: 5px; }
+.bar-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; }
+#bar button { background: transparent; border: 1px solid var(--bar-muted); border-radius: 6px; color: var(--bar-fg); padding: 2px 9px; font-size: 13px; }
+#bar button[aria-pressed="true"] { background: var(--bar-fg); color: var(--bar); }
+#bar b { font-size: 14px; }
+#bar .st { font-family: var(--mono); font-size: 11px; color: var(--bar-muted); text-align: center; overflow-wrap: anywhere; }
+@media (max-width: 640px) { :root { --barh: 132px; } .a-u { grid-template-columns: minmax(0, 1fr); } .a-lang { margin-left: 0; } .b-speaker { display: none; } }
+@media (prefers-reduced-motion: reduce) { mark.fix { animation: none; background: transparent; color: inherit; } .lvl i { transition: none; } }
+</style>
+
+<div id="app"></div>
+<div id="bar"></div>
+
+<script>
+// Énoncés simulés : `draft` est le Texte provisoire (avec ses erreurs), `final` le Texte définitif.
+const SCRIPT = [
+  { lang: 'en', draft: 'Welcome to Berlin and thanks for being here so early on the second day', final: 'Welcome to Berlin, and thanks for being here so early on the second day.' },
+  { lang: 'en', draft: 'This morning I want to talk about running speech models on a laptop with no GPU', final: 'This morning I want to talk about running speech models on a laptop, with no GPU.' },
+  { lang: 'en', draft: 'Most of you think you need a data sender for that you don\'t', final: 'Most of you think you need a data center for that. You don\'t.' },
+  { silence: 12 },
+  { lang: 'de', draft: 'Ich übernehme jetzt kurz auf Deutsch weil die Kollegen aus München gefragt haben', final: 'Ich übernehme jetzt kurz auf Deutsch, weil die Kollegen aus München gefragt haben.' },
+  { lang: 'de', draft: 'Die Latenz liegt bei unter einer Sekunde auch ohne Grafik Karte', final: 'Die Latenz liegt bei unter einer Sekunde, auch ohne Grafikkarte.' },
+  { lang: 'fr', draft: 'Et pour nos collègues de Lyon je passe au français une minute', final: 'Et pour nos collègues de Lyon, je passe au français une minute.' },
+  { lang: 'fr', draft: 'Le texte s\'affiche d\'abord vite puis il se corrige quand la phrase est finit', final: 'Le texte s\'affiche d\'abord vite, puis il se corrige quand la phrase est finie.' },
+  { lang: 'fr', draft: 'Ce que vous lisez là peut donc encore bouger pendant une seconde ou deux', final: 'Ce que vous lisez là peut donc encore bouger pendant une seconde ou deux.' },
+  { lang: 'en', draft: 'Back to English for the questions who wants to start', final: 'Back to English for the questions. Who wants to start?' },
+];
+const LANG_NAMES = { en: 'English', de: 'Deutsch', fr: 'Français' };
+const TICK_MS = 300;
+const LANG_KNOWN_AFTER = 3; // mots de provisoire avant que la langue soit connue
+const FINAL_DELAY = 3;      // ticks entre le dernier mot et le Texte définitif
+
+const S = {
+  variant: 'D', phase: 'launch',
+  op: 75, stamps: false, hist: false, win: { x: null, y: null, b: null },
+  scaleL: 1, scaleH: 1, pauseAt: null, gap: 0, saved: {},
+  source: 'system', lang: 'auto', keepText: true, srt: true,
+  scale: 1, hc: false, stripPos: 'bas', stripOpen: false,
+  ticks: 0, finals: [], draftWords: 0, wait: 0, cursor: 0, silentFor: 0, level: 0,
+  follow: true, unseen: 0,
+};
+
+const pad = n => String(n).padStart(2, '0');
+const stamp = t => { const s = Math.floor(t * TICK_MS / 1000); return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`; };
+const sourceName = () => S.source === 'system' ? 'Son système' : 'Micro';
+const current = () => SCRIPT[S.cursor % SCRIPT.length];
+const speaking = () => S.draftWords > 0;
+const knownLang = () => {
+  if (S.lang !== 'auto') return S.lang;
+  if (speaking()) return S.draftWords >= LANG_KNOWN_AFTER ? current().lang : null;
+  const last = S.finals[S.finals.length - 1];
+  return last ? last.lang : null;
+};
+const chip = () => {
+  const l = knownLang();
+  const forced = S.lang !== 'auto' ? ' forcée' : '';
+  return l ? `<span class="chip">${l.toUpperCase()}${forced}</span>` : '<span class="chip unknown">langue ?</span>';
+};
+const rendus = () => ['live', S.keepText && 'texte brut', S.srt && '.srt'].filter(Boolean).join(' + ');
+const provText = () => current().draft.split(' ').slice(0, S.draftWords).join(' ');
+const provHTML = () => speaking() ? `<span class="prov">${provText()}</span>` : '';
+const silentMsg = () => S.source === 'system'
+  ? 'Aucun son capté. Rien ne joue, ou le son sort sur une autre sortie.'
+  : 'Aucun son capté par le micro.';
+const isSilent = () => S.silentFor >= 5;
+
+function finalHTML(u) {
+  if (!u.fresh) return u.text;
+  const draft = new Set(u.draft.split(' '));
+  return u.text.split(' ').map(w => draft.has(w) ? w : `<mark class="fix">${w}</mark>`).join(' ');
+}
+
+function resetSim() { Object.assign(S, { ticks: 0, finals: [], draftWords: 0, wait: 0, cursor: 0, silentFor: 0, follow: true, unseen: 0, pauseAt: null, gap: 0, saved: {} }); }
+
+const paused = () => S.pauseAt !== null;
+function finalize(text) {
+  const u = current();
+  S.finals.forEach(f => f.fresh = false);
+  S.finals.push({ lang: S.lang === 'auto' ? u.lang : S.lang, text, draft: u.draft, at: S.ticks, fresh: true, gap: S.gap });
+  S.gap = 0; S.draftWords = 0; S.wait = 0; S.cursor++;
+  if (!S.follow) S.unseen++;
+}
+// La pause clôt l'énoncé en cours ; l'horloge continue pour que les horodatages restent ceux de la Session.
+function pause() {
+  if (paused()) return;
+  if (speaking()) finalize(current().final.split(' ').slice(0, S.draftWords).join(' '));
+  S.pauseAt = S.ticks; S.silentFor = 0; S.level = 0;
+}
+function resume() {
+  if (!paused()) return;
+  S.gap = S.ticks - S.pauseAt;
+  S.cursor += Math.floor(S.gap / 30); // ce qui a été dit pendant la pause est perdu
+  S.pauseAt = null;
+}
+
+function step() {
+  if (S.phase === 'end' && paused()) S.ticks++;
+  if (S.phase !== 'live') return;
+  S.ticks++;
+  if (paused()) { paint(); return; }
+  const u = current();
+  if (u.silence) {
+    S.level = 0; S.silentFor++;
+    if (S.silentFor >= u.silence) { S.silentFor = 0; S.cursor++; }
+  } else {
+    S.silentFor = 0;
+    const words = u.draft.split(' ').length;
+    if (S.draftWords < words) { S.draftWords++; S.level = 40 + Math.random() * 55; }
+    else if (S.wait < FINAL_DELAY) { S.wait++; S.level = 10; }
+    else finalize(u.final);
+  }
+  paint();
+}
+
+/* ---------- Variante A : fil de lecture ---------- */
+const A = {
+  name: 'Fil de lecture',
+  launch: () => `<div class="a-launch gut">
+    <h1>Nouvelle Session</h1>
+    <fieldset><legend>Que faut-il écouter ?</legend>
+      <button class="a-opt" data-set="source:system" aria-pressed="${S.source === 'system'}"><span class="grow">Son système<small>Vidéo, visio ou stream joué sur cette machine</small></span><span class="lvl"><i style="width:55%"></i></span></button>
+      <button class="a-opt" data-set="source:mic" aria-pressed="${S.source === 'mic'}"><span class="grow">Micro<small>Conférence dans la salle</small></span><span class="lvl"><i style="width:20%"></i></span></button>
+    </fieldset>
+    <fieldset><legend>Langue parlée</legend><div class="seg">${langButtons()}</div></fieldset>
+    <fieldset><legend>Conserver en fin de Session</legend>
+      <button class="a-opt" data-toggle="keepText" aria-pressed="${S.keepText}"><span class="grow">Texte brut</span>${S.keepText ? 'Oui' : 'Non'}</button>
+      <button class="a-opt" data-toggle="srt" aria-pressed="${S.srt}"><span class="grow">Sous-titres .srt</span>${S.srt ? 'Oui' : 'Non'}</button>
+    </fieldset>
+    <div><button class="go" data-act="start">Lancer la Session</button></div>
+  </div>`,
+  live: () => `<div class="a-top gut">
+      <span class="mono" id="clock"></span>
+      <span>${sourceName()}</span><span class="lvl"><i id="lvl"></i></span>
+      <span id="chip"></span>
+      <span style="color:var(--muted)">${rendus()}</span>
+      <span class="sp"></span>
+      ${readingTools('tool')}
+      <button class="stop" data-act="stop">Arrêter</button>
+    </div>
+    <div class="a-alert gut" id="alert" hidden></div>
+    <div class="a-scroll gut" id="scroll"><div class="a-col" id="col"></div><button class="a-back" id="back" data-act="follow" hidden></button></div>`,
+  paint() {
+    let last = null, html = '';
+    S.finals.forEach(u => {
+      if (u.lang !== last) { html += `<div class="a-lang">${LANG_NAMES[u.lang]}</div>`; last = u.lang; }
+      html += `<div class="a-u"><time>${stamp(u.at)}</time><div>${finalHTML(u)}</div></div>`;
+    });
+    if (speaking()) html += `<div class="a-u"><time>en cours</time><div>${provHTML()}</div></div>`;
+    $('col').innerHTML = html;
+    const box = $('scroll');
+    if (S.follow) box.scrollTop = box.scrollHeight;
+    const back = $('back');
+    back.hidden = S.follow;
+    back.textContent = S.unseen ? `Revenir au direct · ${S.unseen} nouveaux` : 'Revenir au direct';
+  },
+};
+
+/* ---------- Variante B : bandeau flottant ---------- */
+const backdrop = () => `<div class="b-tag">Votre vidéo, en dessous de l'outil (fictive)</div>
+  <div class="b-slide">Speech models on a laptop</div><div class="b-speaker"></div>`;
+const B = {
+  name: 'Bandeau flottant',
+  launch: () => `<div class="b">${backdrop()}
+    <div class="b-strip ${S.stripPos}">
+      <div class="b-row">
+        <button data-set="source:system" aria-pressed="${S.source === 'system'}">Son système</button>
+        <button data-set="source:mic" aria-pressed="${S.source === 'mic'}">Micro</button>
+        <span class="b-sep"></span>${langButtons()}
+        <span class="b-sep"></span>
+        <button data-toggle="keepText" aria-pressed="${S.keepText}">Texte brut</button>
+        <button data-toggle="srt" aria-pressed="${S.srt}">.srt</button>
+        <span class="sp"></span>
+        <button class="b-go" data-act="start">Écouter</button>
+      </div>
+    </div></div>`,
+  live: () => `<div class="b">${backdrop()}
+    <div class="b-strip ${S.stripPos}">
+      <div class="b-text ${S.stripOpen ? 'open' : ''}" id="btext"></div>
+      <div class="b-row">
+        <span class="mono" id="clock"></span><span class="lvl"><i id="lvl"></i></span><span id="chip"></span>
+        <span class="b-warn" id="alert" hidden></span>
+        <span class="sp"></span>
+        <button data-act="openStrip" aria-pressed="${S.stripOpen}">Historique</button>
+        <button data-act="flipStrip">${S.stripPos === 'bas' ? 'En haut' : 'En bas'}</button>
+        ${readingTools('')}
+        <button data-act="stop">Arrêter</button>
+      </div>
+    </div></div>`,
+  paint() {
+    const keep = S.stripOpen ? 8 : (speaking() ? 1 : 2);
+    const lines = S.finals.slice(-keep).map((u, i, a) => `<div class="${i < a.length - 1 || speaking() ? 'old' : ''}">${finalHTML(u)}</div>`).join('');
+    const box = $('btext');
+    box.innerHTML = lines + (speaking() ? `<div>${provHTML()}</div>` : '');
+    if (S.stripOpen) box.scrollTop = box.scrollHeight;
+  },
+};
+
+/* ---------- Variante C : prompteur ---------- */
+const nextOf = (list, v) => list[(list.indexOf(v) + 1) % list.length];
+const C = {
+  name: 'Prompteur',
+  launch: () => `<div class="c"><div class="c-launch gut">
+    <p class="c-phrase">Écouter <button data-act="cycleSource">${S.source === 'system' ? 'le Son système' : 'le micro'}</button>,
+      langue <button data-act="cycleLang">${S.lang === 'auto' ? 'détectée' : LANG_NAMES[S.lang]}</button>,
+      conserver <button data-act="cycleKeep">${keepPhrase()}</button>.</p>
+    <button class="c-go" data-act="start">Écouter</button>
+    <p class="c-hint">Les mots soulignés sont vos réglages de la dernière Session. Cliquez dessus pour les changer.</p>
+  </div></div>`,
+  live: () => `<div class="c">
+    <div class="c-meta gut">
+      <span class="mono" id="clock"></span><span class="lvl"><i id="lvl"></i></span><span id="chip"></span>
+      <span>${sourceName()} · ${rendus()}</span>
+      <span class="sp"></span>${readingTools('')}<button data-act="stop">Arrêter</button>
+    </div>
+    <div class="c-stage gut" id="stage"></div></div>`,
+  paint() {
+    const f = S.finals, lastF = f[f.length - 1], prev = speaking() ? lastF : f[f.length - 2];
+    const lang = knownLang();
+    $('stage').innerHTML = `
+      ${prev ? `<div class="c-prev">${prev.text}</div>` : ''}
+      <div class="c-name">${lang ? LANG_NAMES[lang] : '&nbsp;'}</div>
+      <div class="c-now">${speaking() ? provHTML() : (lastF ? finalHTML(lastF) : '')}</div>
+      ${isSilent() ? `<div class="c-warn">${silentMsg()}</div>` : ''}`;
+  },
+};
+
+/* ---------- Variante D : fenêtre compacte, dépliable en historique ---------- */
+const timeTag = u => S.stamps ? `<time>${stamp(u.at)}</time>` : '';
+const D = {
+  name: 'Compacte + historique',
+  count: -1,
+  launch: () => `<div class="b" id="dstage">${backdrop()}
+    <div class="d-win" id="dwin" style="--op:${S.op}">
+      <div class="d-head" id="dhead"><span class="d-grip">⠿</span><span>Nouvelle Session</span></div>
+      <div class="d-form">
+        <span>Écouter</span><div class="b-row">
+          <button data-set="source:system" aria-pressed="${S.source === 'system'}">Son système</button>
+          <button data-set="source:mic" aria-pressed="${S.source === 'mic'}">Micro</button></div>
+        <span>Langue</span><div class="b-row">${langButtons()}</div>
+        <span>Conserver</span><div class="b-row">
+          <button data-toggle="keepText" aria-pressed="${S.keepText}">Texte brut</button>
+          <button data-toggle="srt" aria-pressed="${S.srt}">.srt</button></div>
+      </div>
+      <div class="d-start"><button class="b-go" data-act="start">Écouter</button></div>
+    </div></div>`,
+  live() {
+    D.count = -1;
+    return `<div class="b" id="dstage">${backdrop()}
+    <div class="d-win ${S.hist ? 'hist' : ''}" id="dwin" style="--op:${S.op};--sl:${S.scaleL};--sh:${S.scaleH}">
+      <div class="d-head" id="dhead">
+        <span class="d-grip">⠿</span><span class="mono" id="clock"></span><span class="lvl"><i id="lvl"></i></span><span id="chip"></span>
+        <span class="sp"></span><span>${sourceName()} · ${rendus()}</span>
+      </div>
+      ${S.hist ? `<div class="d-histwrap">
+        <div class="b-row d-zone"><span class="d-livelabel">HISTORIQUE</span><span class="sp"></span>
+          <button data-act="size" data-k="scaleH" data-d="-0.15" aria-label="Historique plus petit">A−</button>
+          <button data-act="size" data-k="scaleH" data-d="0.15" aria-label="Historique plus grand">A+</button></div>
+        <div class="d-hist" id="scroll"></div><button class="d-away" id="back" data-act="follow" hidden></button></div>` : ''}
+      <div class="d-livebox">
+        <div class="b-row d-zone" style="padding:0 0 4px"><span class="d-livelabel" id="dlabel"></span><span class="sp"></span>
+          <button data-act="size" data-k="scaleL" data-d="-0.15" aria-label="Texte live plus petit">A−</button>
+          <button data-act="size" data-k="scaleL" data-d="0.15" aria-label="Texte live plus grand">A+</button></div>
+        <div class="d-live" id="dlive"></div>
+      </div>
+      <div class="d-status"><span id="alert" hidden></span></div>
+      <div class="d-tools">
+        <div class="b-row">
+          <button data-act="hist" aria-pressed="${S.hist}">Historique</button>
+          <button data-act="stamps" aria-pressed="${S.stamps}">Horodatage</button>
+          <label for="dop">Fond <input id="dop" type="range" min="0" max="100" step="5" value="${S.op}"> <span class="mono" id="dopval">${S.op} %</span></label>
+          <span class="sp"></span>
+          <button class="d-pause" data-act="pause" aria-pressed="${paused()}">${paused() ? 'Reprendre' : 'Pause'}</button>
+          <button data-act="stop">Arrêter</button>
+        </div>
+      </div>
+    </div></div>`;
+  },
+  // La zone directe montre toujours le dernier Texte définitif et le provisoire ;
+  // l'historique montre tout le reste, pour que rien n'apparaisse en double.
+  paint() {
+    const f = S.finals, last = f[f.length - 1];
+    $('dlive').innerHTML = (last ? `<div class="${speaking() ? 'd-old' : ''}">${timeTag(last)}${finalHTML(last)}</div>` : '')
+      + (speaking() ? `<div>${provHTML()}</div>` : '');
+    const label = $('dlabel');
+    if (label) label.textContent = paused() ? 'EN PAUSE' : '● DIRECT';
+    const box = $('scroll');
+    if (!box) return;
+    if (f.length !== D.count) {
+      D.count = f.length;
+      let lang = null;
+      box.innerHTML = f.slice(0, -1).map(u => {
+        const head = (u.gap ? `<div class="d-gap">Pause de ${Math.round(u.gap * TICK_MS / 1000)} s</div>` : '')
+          + (u.lang !== lang ? `<div class="d-lang">${LANG_NAMES[u.lang]}</div>` : '');
+        lang = u.lang;
+        return `${head}<div class="d-u" data-at="${u.at}">${timeTag(u)}${u.text}</div>`;
+      }).join('');
+    }
+    if (S.follow) box.scrollTop = box.scrollHeight;
+    box.classList.toggle('away', !S.follow);
+    const back = $('back');
+    back.hidden = S.follow;
+    if (!S.follow) {
+      const seen = [...box.querySelectorAll('.d-u')].find(el => el.offsetTop - box.offsetTop + el.offsetHeight > box.scrollTop);
+      const at = seen ? stamp(+seen.dataset.at) : '';
+      back.textContent = `Vous lisez ${at} · Revenir au direct${S.unseen ? ` (${S.unseen})` : ''}`;
+    }
+  },
+  mount() {
+    const win = $('dwin'), stage = $('dstage');
+    const place = (x, y) => {
+      S.win.x = Math.max(0, Math.min(x, stage.clientWidth - win.offsetWidth));
+      S.win.y = Math.max(0, Math.min(y, stage.clientHeight - win.offsetHeight));
+      win.style.left = S.win.x + 'px';
+      win.style.top = S.win.y + 'px';
+    };
+    // Le bas de la fenêtre reste fixe : la zone directe et les boutons ne bougent pas quand elle se déplie.
+    if (S.win.b === null) S.win.b = stage.clientHeight - 12;
+    if (S.hist && S.phase === 'live') win.style.height = Math.max(220, Math.min(win.offsetHeight, S.win.b)) + 'px';
+    place(S.win.x ?? (stage.clientWidth - win.offsetWidth) / 2, S.win.b - win.offsetHeight);
+    const head = $('dhead');
+    head.addEventListener('pointerdown', e => {
+      const dx = e.clientX - S.win.x, dy = e.clientY - S.win.y;
+      head.setPointerCapture(e.pointerId);
+      head.onpointermove = m => { place(m.clientX - dx, m.clientY - dy); S.win.b = S.win.y + win.offsetHeight; };
+      head.onpointerup = () => { head.onpointermove = null; };
+    });
+  },
+};
+const VARIANTS = { A, B, C, D };
+const KEEP = [[true, true], [true, false], [false, true], [false, false]];
+function keepPhrase() {
+  if (S.keepText && S.srt) return 'le texte et le .srt';
+  if (S.keepText) return 'le texte';
+  if (S.srt) return 'le .srt';
+  return 'rien';
+}
+const langButtons = () => [['auto', 'Détection auto'], ['en', 'EN'], ['de', 'DE'], ['fr', 'FR']]
+  .map(([k, l]) => `<button data-set="lang:${k}" aria-pressed="${S.lang === k}">${l}</button>`).join('');
+const readingTools = cls => `<button class="${cls}" data-act="smaller" aria-label="Texte plus petit">A−</button>
+  <button class="${cls}" data-act="bigger" aria-label="Texte plus grand">A+</button>
+  <button class="${cls}" data-act="contrast" aria-pressed="${S.hc}">Contraste</button>`;
+
+/* ---------- Écran de fin, commun aux variantes ---------- */
+function endHTML() {
+  const files = [['txt', S.keepText], ['srt', S.srt]];
+  const row = ([ext, auto]) => {
+    const saved = auto || S.saved[ext];
+    return `<div class="end-row"><span class="grow"><span class="mono">transcription-2026-10-31-0928.${ext}</span>
+      <small>${saved ? 'Dans Téléchargements' : 'Pas encore enregistré'}</small></span>
+      <button class="tool" data-act="save" data-ext="${ext}">${saved ? 'Afficher dans le dossier' : 'Enregistrer…'}</button></div>`;
+  };
+  const unsaved = files.some(([ext, auto]) => !auto && !S.saved[ext]);
+  return `<div class="end-wrap gut"><div class="end">
+    <h2>Session terminée</h2>
+    <p class="note">${stamp(paused() ? S.pauseAt : S.ticks)} · ${S.finals.length} énoncés · ${sourceName()}</p>
+    ${files.map(row).join('')}
+    ${unsaved ? '<p class="note">Un fichier non enregistré disparaît à la fermeture de l\'outil ou au lancement d\'une nouvelle Session.</p>' : ''}
+    <div class="end-actions"><button class="go" data-act="resume">Reprendre la Session</button>
+      <button class="tool" data-act="restart">Nouvelle Session</button></div>
+  </div></div>`;
+}
+
+/* ---------- Rendu ---------- */
+const $ = id => document.getElementById(id);
+const app = $('app');
+function render() {
+  const keepScroll = $('scroll')?.scrollTop;
+  app.className = S.hc ? 'hc' : '';
+  app.style.setProperty('--scale', S.scale);
+  app.innerHTML = S.phase === 'end' ? endHTML() : VARIANTS[S.variant][S.phase]();
+  if (S.variant === 'D' && S.phase !== 'end') D.mount();
+  const box = $('scroll');
+  if (box) box.addEventListener('scroll', () => {
+    const atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    if (atEnd !== S.follow) { S.follow = atEnd; if (atEnd) S.unseen = 0; paint(); }
+  });
+  renderBar();
+  paint();
+  if (box && !S.follow && keepScroll !== undefined) box.scrollTop = keepScroll;
+}
+function paint() {
+  if (S.phase === 'live') {
+    VARIANTS[S.variant].paint();
+    $('clock').textContent = stamp(S.ticks);
+    $('lvl').style.width = S.level + '%';
+    $('chip').innerHTML = chip();
+    const alert = $('alert');
+    const msg = paused() ? 'En pause. Rien n\'est écouté, l\'horloge continue.' : isSilent() ? silentMsg() : '';
+    if (alert) { alert.hidden = !msg; alert.textContent = msg; }
+  }
+  renderState();
+}
+function renderBar() {
+  const v = VARIANTS[S.variant];
+  $('bar').innerHTML = `<div>
+    <div class="bar-row">
+      <button data-bar="prev" aria-label="Variante précédente">←</button>
+      <b>${S.variant} (${v.name})</b>
+      <button data-bar="next" aria-label="Variante suivante">→</button>
+      ${[['launch', 'Lancement'], ['live', 'Live'], ['end', 'Fin']].map(([p, l]) => `<button data-bar="${p}" aria-pressed="${S.phase === p}">${l}</button>`).join('')}
+      <button data-bar="replay">Rejouer</button>
+    </div>
+    <div class="st" id="st"></div></div>`;
+}
+function renderState() {
+  const st = $('st');
+  if (st) st.textContent = `phase=${S.phase} source=${S.source} langue=${S.lang}${S.lang === 'auto' ? `(${knownLang() ?? '?'})` : ''} rendus=${rendus()} définitifs=${S.finals.length} provisoire=${S.draftWords} mots t=${stamp(S.ticks)}${paused() ? ' pause' : isSilent() ? ' silence' : ''}`;
+}
+function setVariant(v) {
+  S.variant = v;
+  try { history.replaceState(null, '', '#' + v.toLowerCase()); } catch (e) { /* cadre du viewer */ }
+  render();
+}
+function shift(d) {
+  const keys = Object.keys(VARIANTS);
+  setVariant(keys[(keys.indexOf(S.variant) + d + keys.length) % keys.length]);
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const { set, toggle, act, bar } = b.dataset;
+  if (set) { const [k, v] = set.split(':'); S[k] = v; render(); }
+  if (toggle) { S[toggle] = !S[toggle]; render(); }
+  if (bar === 'prev') shift(-1);
+  if (bar === 'next') shift(1);
+  if (bar === 'launch' || bar === 'end') { S.phase = bar; render(); }
+  if (bar === 'live') { S.phase = 'live'; render(); }
+  if (bar === 'replay') { resetSim(); S.phase = 'live'; render(); }
+  switch (act) {
+    case 'start': resetSim(); S.phase = 'live'; render(); break;
+    case 'stop': pause(); S.phase = 'end'; render(); break;
+    case 'pause': paused() ? resume() : pause(); render(); break;
+    case 'resume': resume(); S.phase = 'live'; render(); break;
+    case 'save': S.saved[b.dataset.ext] = true; render(); break;
+    case 'size': S[b.dataset.k] = Math.max(.7, Math.min(2, +(S[b.dataset.k] + +b.dataset.d).toFixed(2))); render(); break;
+    case 'restart': resetSim(); S.phase = 'launch'; render(); break;
+    case 'bigger': S.scale = Math.min(2, +(S.scale + .15).toFixed(2)); render(); break;
+    case 'smaller': S.scale = Math.max(.7, +(S.scale - .15).toFixed(2)); render(); break;
+    case 'contrast': S.hc = !S.hc; render(); break;
+    case 'hist': S.hist = !S.hist; S.follow = true; S.unseen = 0; render(); break;
+    case 'stamps': S.stamps = !S.stamps; render(); break;
+    case 'follow': S.follow = true; S.unseen = 0; paint(); break;
+    case 'openStrip': S.stripOpen = !S.stripOpen; render(); break;
+    case 'flipStrip': S.stripPos = S.stripPos === 'bas' ? 'haut' : 'bas'; render(); break;
+    case 'cycleSource': S.source = S.source === 'system' ? 'mic' : 'system'; render(); break;
+    case 'cycleLang': S.lang = nextOf(['auto', 'en', 'de', 'fr'], S.lang); render(); break;
+    case 'cycleKeep': {
+      const i = KEEP.findIndex(([t, r]) => t === S.keepText && r === S.srt);
+      [S.keepText, S.srt] = KEEP[(i + 1) % KEEP.length]; render(); break;
+    }
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id !== 'dop') return;
+  S.op = +e.target.value;
+  $('dwin').style.setProperty('--op', S.op);
+  $('dopval').textContent = S.op + ' %';
+});
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea, select, [contenteditable]')) return;
+  if (e.key === 'ArrowLeft') shift(-1);
+  if (e.key === 'ArrowRight') shift(1);
+});
+window.addEventListener('hashchange', () => {
+  const v = location.hash.slice(1).toUpperCase();
+  if (VARIANTS[v] && v !== S.variant) setVariant(v);
+});
+
+const fromHash = location.hash.slice(1).toUpperCase();
+if (VARIANTS[fromHash]) S.variant = fromHash;
+render();
+setInterval(step, TICK_MS);
+</script>
