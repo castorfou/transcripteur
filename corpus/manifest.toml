@@ -1,0 +1,221 @@
+# Corpus d'essai : sources et extraits. Voir docs/dev/corpus-essai.md.
+
+[[source]]
+id = "en-fuzzing"
+lang = "en"
+title = "Fuzzing the TCP/IP stack"
+page = "https://media.ccc.de/v/37c3-12235-fuzzing_the_tcp_ip_stack"
+audio = "https://cdn.media.ccc.de/congress/2023/mp3/37c3-12235-eng-Fuzzing_the_TCP_IP_stack_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2023/37c3-12235-eng-deu-fra-Fuzzing_the_TCP_IP_stack.en.srt"
+reference_sha256 = "9b669bec61898497505ae5828a1314eb4cdbf36153de5a73c609791c6df613c0"  # pragma: allowlist secret
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "en-wikipedia"
+lang = "en"
+title = "Infrastructure of Wikipedia"
+page = "https://media.ccc.de/v/36c3-73-infrastructure-of-wikipedia"
+audio = "https://cdn.media.ccc.de/congress/2019/mp3/36c3-wikipakawg-73-eng-Infrastructure_of_Wikipedia_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2019/36c3-wikipakawg-73-eng-deu-Infrastructure_of_Wikipedia.en.srt"
+reference_sha256 = "ce0454cd55f58b22005dad41281a9392e9a95029a05ab83b216faa6eedc9f4ca"  # pragma: allowlist secret
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "en-quantum"
+lang = "en"
+title = "Quantum Computing: Are we there yet?"
+page = "https://media.ccc.de/v/36c3-11039-quantum_computing_are_we_there_yet"
+audio = "https://cdn.media.ccc.de/congress/2019/mp3/36c3-11039-eng-Quantum_Computing_Are_we_there_yet_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2019/36c3-11039-eng-deu-fra-Quantum_Computing_Are_we_there_yet.en.srt"
+reference_sha256 = "36cccee56e0c5c67a4c05c7048fdfe597cdb6b08ff99cd6be22cd9d0ff418c5b"  # pragma: allowlist secret
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "de-forensik"
+lang = "de"
+title = "Einführung in Smartphone Malware Forensik"
+page = "https://media.ccc.de/v/37c3-11874-einfuhrung_in_smartphone_malware_forensik"
+audio = "https://cdn.media.ccc.de/congress/2023/mp3/37c3-11874-deu-Einfuehrung_in_Smartphone_Malware_Forensik_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2023/37c3-11874-deu-eng-fra-Einfuehrung_in_Smartphone_Malware_Forensik.de.srt"
+reference_sha256 = "389986d864a27813f241a8fc2510129fc75eaabbf5a121edffbb12a24361f295"  # pragma: allowlist secret
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "de-klima"
+lang = "de"
+title = "Nutzung öffentlicher Klimadaten"
+page = "https://media.ccc.de/v/36c3-10571-nutzung_offentlicher_klimadaten"
+audio = "https://cdn.media.ccc.de/congress/2019/mp3/36c3-10571-deu-Nutzung_oeffentlicher_Klimadaten_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2019/36c3-10571-deu-eng-Nutzung_oeffentlicher_Klimadaten.de.srt"
+reference_sha256 = "c3864189cc7767dfb30bad0bc8e05bc17818d2eccb57c2fbc6a3809203cb5b9a"  # pragma: allowlist secret
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "de-datacenter"
+lang = "de"
+title = "Datacenter - was wir wissen sollten"
+page = "https://media.ccc.de/v/36c3-126-datacenter-was-wir-wissen-sollten-und-trotzdem-oft-nicht-erfahren-"
+audio = "https://cdn.media.ccc.de/congress/2019/mp3/36c3-chaoswest-126-deu-Datacenter_-_was_wir_wissen_sollten_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2019/36c3-chaoswest-126-deu-Datacenter_-_was_wir_wissen_sollten.de.srt"
+reference_sha256 = "02e151f0896c17401e27f56426b21b7d58c78b30fb4f15a32bb2856b78cde3ad"  # pragma: allowlist secret
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "en-boeing"
+lang = "en"
+title = "Boeing 737MAX: Automated Crashes"
+page = "https://media.ccc.de/v/36c3-10961-boeing_737max_automated_crashes"
+audio = "https://cdn.media.ccc.de/congress/2019/mp3/36c3-10961-eng-Boeing_737MAX_Automated_Crashes_mp3.mp3"
+reference = "https://cdn.media.ccc.de/congress/2019/36c3-10961-eng-deu-fra-Boeing_737MAX_Automated_Crashes.en.srt"
+reference_sha256 = ""
+licence = "non indiquée sur la page"
+provenance = "sous-titres c3subtitles relus (hors fichiers DRAFT)"
+
+[[source]]
+id = "fr-imagination"
+lang = "fr"
+title = "Imagination is a weapon | Emmanuel Chiva | TEDxParis"
+page = "https://www.youtube.com/watch?v=q1TJXua3QKQ"
+audio = "youtube:q1TJXua3QKQ"
+reference = "youtube:q1TJXua3QKQ/fr"
+reference_sha256 = "41e411e895ccd29a61eb3ef42471b9cbbcbfb6ccec3ce42b4bc0124920a0d3d8"  # pragma: allowlist secret
+licence = "licence YouTube standard, usage d'évaluation personnel"
+provenance = "piste manuelle de sous-titres français"
+
+[[source]]
+id = "fr-negatif"
+lang = "fr"
+title = "Turning the negative into the positive | Christophe Haag | TEDxEMLYON"
+page = "https://www.youtube.com/watch?v=XR7KRJ9ExZU"
+audio = "youtube:XR7KRJ9ExZU"
+reference = "youtube:XR7KRJ9ExZU/fr"
+reference_sha256 = "07ce50eba8685def1ca7860771e56d528ee55ad55bc581153dfe099206c1ab9b"  # pragma: allowlist secret
+licence = "licence YouTube standard, usage d'évaluation personnel"
+provenance = "piste manuelle de sous-titres français"
+
+[[source]]
+id = "fr-hasard"
+lang = "fr"
+title = "Nothing happens to us by chance | Nadalette La Fonta Six | TEDxChampsElyseesWomen"
+page = "https://www.youtube.com/watch?v=8S8mie3bwtw"
+audio = "youtube:8S8mie3bwtw"
+reference = "youtube:8S8mie3bwtw/fr"
+reference_sha256 = "c4b9cb330e9a1ee8358105aa1e4d68aee33df0d5f5b05da46dede4925f401ecd"  # pragma: allowlist secret
+licence = "licence YouTube standard, usage d'évaluation personnel"
+provenance = "piste manuelle de sous-titres français"
+
+[[extract]]
+id = "en-fuzzing"
+kind = "talk"
+lang = "en"
+source = "en-fuzzing"
+start = 600
+end = 900
+
+[[extract]]
+id = "en-wikipedia"
+kind = "talk"
+lang = "en"
+source = "en-wikipedia"
+start = 600
+end = 900
+
+[[extract]]
+id = "en-quantum"
+kind = "talk"
+lang = "en"
+source = "en-quantum"
+start = 600
+end = 900
+
+[[extract]]
+id = "de-forensik"
+kind = "talk"
+lang = "de"
+source = "de-forensik"
+start = 600
+end = 900
+
+[[extract]]
+id = "de-klima"
+kind = "talk"
+lang = "de"
+source = "de-klima"
+start = 600
+end = 900
+
+[[extract]]
+id = "de-datacenter"
+kind = "talk"
+lang = "de"
+source = "de-datacenter"
+start = 600
+end = 900
+
+[[extract]]
+id = "fr-imagination"
+kind = "talk"
+lang = "fr"
+source = "fr-imagination"
+start = 120
+end = 420
+
+[[extract]]
+id = "fr-negatif"
+kind = "talk"
+lang = "fr"
+source = "fr-negatif"
+start = 120
+end = 420
+
+[[extract]]
+id = "fr-hasard"
+kind = "talk"
+lang = "fr"
+source = "fr-hasard"
+start = 120
+end = 420
+
+[[extract]]
+id = "multilingue"
+kind = "multilingue"
+lang = "multi"
+segments = [
+  { source = "en-fuzzing", start = 1200, end = 1250 },
+  { source = "de-forensik", start = 1200, end = 1250 },
+  { source = "fr-imagination", start = 430, end = 480 },
+  { source = "de-klima", start = 1200, end = 1250 },
+  { source = "fr-negatif", start = 430, end = 480 },
+  { source = "en-wikipedia", start = 1200, end = 1250 },
+  { source = "fr-hasard", start = 430, end = 480 },
+  { source = "en-quantum", start = 1200, end = 1250 },
+  { source = "de-datacenter", start = 1200, end = 1250 },
+  { source = "fr-imagination", start = 490, end = 540 },
+  { source = "en-fuzzing", start = 1260, end = 1310 },
+  { source = "de-forensik", start = 1260, end = 1310 },
+]
+
+[[extract]]
+id = "tenue-1h"
+kind = "tenue"
+lang = "en"
+source = "en-boeing"
+start = 0
+end = 3647
+reference = false
+
+[[extract]]
+id = "micro-1"
+kind = "micro"
+lang = "fr"
+
+[[extract]]
+id = "micro-2"
+kind = "micro"
+lang = "fr"

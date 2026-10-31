@@ -33,6 +33,7 @@ dev = [
     "cruft",
     "pre-commit",
     "pytest",
+    "pytest-cov",
     "ruff",
     "mypy",
     "mkdocs>=1.5.0",
@@ -45,6 +46,10 @@ dev = [
     "pymdown-extensions",
     "mkdocs-rtd-dropdown",
     "nbdev>=2.4.6"
+]
+corpus = [
+    "imageio-ffmpeg",
+    "yt-dlp",
 ]
 
 [project.urls]
@@ -189,10 +194,11 @@ ignore_errors = true
 module = [
     "tests.*",
     "pytest",
+    "corpus",
 ]
 ignore_missing_imports = true
 disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
-pythonpath = "."
+pythonpath = [".", "scripts"]
 testpaths = ["tests"]
