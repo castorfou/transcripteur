@@ -17,3 +17,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends pulseaudio-utils libasound2-plugins \
     && rm -rf /var/lib/apt/lists/* \
     && printf 'pcm.!default pulse\nctl.!default pulse\n' > /etc/asound.conf
+
+# Compilation des crates natives Rust : whisper-rs (cmake, libclang pour bindgen)
+# et cpal (en-têtes ALSA)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake clang libclang-dev pkg-config libasound2-dev \
+    && rm -rf /var/lib/apt/lists/*

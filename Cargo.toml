@@ -1,0 +1,7 @@
+# PROTOTYPE : workspace du Spike de bout en bout, jetable, jamais mergé.
+[workspace]
+members = ["crates/spike"]
+resolver = "3"
+
+[profile.release]
+debug = false
