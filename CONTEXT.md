@@ -33,6 +33,10 @@ Mécanisme d'extension par lequel une Source, un Moteur, un Enrichissement ou un
 Une écoute, du lancement à l'arrêt. La Source, la Langue parlée (détectée ou forcée) et les Enrichissements et Rendus actifs sont choisis au lancement et restent les mêmes pendant toute la Session ; l'affichage live est toujours actif.
 _Avoid_ : enregistrement, run
 
+**Pause** :
+Interruption de l'écoute au sein d'une Session : rien n'est capté ni transcrit jusqu'à la reprise, et ce qui est dit entre-temps est perdu. La Session continue, son horloge aussi, et ses réglages ne changent pas.
+_Avoid_ : arrêt, suspension
+
 ### Contenu
 
 **Transcription** :
