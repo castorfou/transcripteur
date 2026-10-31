@@ -1,0 +1,9 @@
+[package]
+name = "essai-slint"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+commun = { path = "../commun" }
+slint = { version = "1.18.1", features = ["unstable-winit-030"] }

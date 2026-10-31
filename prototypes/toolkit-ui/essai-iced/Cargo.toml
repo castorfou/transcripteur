@@ -1,0 +1,9 @@
+[package]
+name = "essai-iced"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+commun = { path = "../commun" }
+iced = { version = "0.14.0", features = ["tokio", "lazy", "advanced"] }
