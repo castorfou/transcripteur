@@ -138,7 +138,8 @@ mark.fix { background: var(--fix); color: var(--fix-fg); border-radius: 2px; ani
 .d-status { height: 20px; padding: 0 12px; font-size: 13px; font-weight: 700; color: var(--stage-warn); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .d-tools { padding: 6px 12px 10px; text-shadow: none; display: grid; gap: 6px; }
 .b-row button:disabled { opacity: .4; cursor: default; }
-.d-pause { min-width: 84px; }
+.d-tools svg { display: block; width: 16px; height: 16px; fill: currentColor; }
+.d-tools .d-ico { padding: 5px 10px; }
 .d-tools label { display: flex; align-items: center; gap: 6px; }
 .d-tools input { width: 92px; accent-color: var(--stage-accent); }
 .d-form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 12px; align-items: center; padding: 12px; font-size: 14px; }
@@ -432,8 +433,8 @@ const D = {
           <button data-act="stamps" aria-pressed="${S.stamps}">Horodatage</button>
           <label for="dop">Fond <input id="dop" type="range" min="0" max="100" step="5" value="${S.op}"> <span class="mono" id="dopval">${S.op} %</span></label>
           <span class="sp"></span>
-          <button class="d-pause" data-act="pause" aria-pressed="${paused()}">${paused() ? 'Reprendre' : 'Pause'}</button>
-          <button data-act="stop">Arrêter</button>
+          <button class="d-ico" data-act="pause" title="${paused() ? 'Reprendre' : 'Pause'}" aria-label="${paused() ? 'Reprendre' : 'Pause'}"><svg viewBox="0 0 16 16" aria-hidden="true">${paused() ? '<path d="M4 2l10 6-10 6z"/>' : '<rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/>'}</svg></button>
+          <button class="d-ico" data-act="stop" title="Arrêter" aria-label="Arrêter"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10"/></svg></button>
         </div>
       </div>
     </div></div>`;
