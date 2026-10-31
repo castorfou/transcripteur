@@ -27,15 +27,19 @@ Forme sous laquelle la transcription est restituée : affichage live, texte brut
 _Avoid_ : sortie, export, plugin de sortie
 
 **Plugin** :
-Mécanisme d'extension par lequel une Source, un Moteur, un Enrichissement ou un Rendu s'ajoute à l'outil. Ne désigne pas une catégorie.
+Mécanisme d'extension par lequel une Source, un Moteur, un Enrichissement ou un Rendu s'ajoute à l'outil. Ne désigne pas une catégorie. Un Plugin s'intègre à la compilation : il n'y a pas de chargement à l'exécution.
 
 **Session** :
-Une écoute, du lancement à l'arrêt. La Source, la Langue parlée (détectée ou forcée) et les Enrichissements et Rendus actifs sont choisis au lancement et restent les mêmes pendant toute la Session ; l'affichage live est toujours actif.
+Une écoute, du lancement jusqu'à la fermeture de l'outil ou au lancement d'une nouvelle Session. La Source, la Langue parlée (détectée ou forcée) et les Enrichissements et Rendus actifs sont choisis au lancement et restent les mêmes pendant toute la Session ; l'affichage live est toujours actif.
 _Avoid_ : enregistrement, run
 
 **Pause** :
-Interruption de l'écoute au sein d'une Session : rien n'est capté ni transcrit jusqu'à la reprise, et ce qui est dit entre-temps est perdu. La Session continue, son horloge aussi, et ses réglages ne changent pas.
-_Avoid_ : arrêt, suspension
+Interruption de l'écoute au sein d'une Session : l'Énoncé en cours est clos, puis rien n'est capté ni transcrit jusqu'à la reprise, et ce qui est dit entre-temps est perdu. La Session continue, son horloge aussi, et ses réglages ne changent pas.
+_Avoid_ : suspension
+
+**Arrêt** :
+Pause suivie de l'écran de fin, d'où l'utilisateur peut encore reprendre. L'Arrêt ne termine pas la Session.
+_Avoid_ : fin de Session
 
 ### Contenu
 
@@ -46,12 +50,16 @@ _Avoid_ : traduction (qui est un Enrichissement distinct)
 **Langue parlée** :
 La langue détectée (ou forcée) pour un passage d'audio ; elle peut changer au cours d'une même écoute.
 
+**Énoncé** :
+Passage de parole continu, délimité par des silences ou par une durée maximale, avec son début, sa fin, son texte et sa Langue parlée. C'est l'unité du Texte définitif ; le Texte provisoire n'est pas découpé en Énoncés.
+_Avoid_ : segment, phrase
+
 **Texte provisoire** :
-Transcription affichée au plus vite pendant que l'énoncé est encore prononcé ; elle peut encore changer.
+Transcription affichée au plus vite, en attendant le Texte définitif qui couvrira le même passage ; elle peut encore changer et n'a pas de Langue parlée.
 _Avoid_ : partiel, brouillon
 
 **Texte définitif** :
-Transcription d'un énoncé terminé, qui ne change plus ; c'est elle que reçoivent le texte brut et les sous-titres.
+Transcription d'un Énoncé terminé, qui ne change plus ; c'est elle que reçoivent le texte brut et les sous-titres.
 _Avoid_ : validé, final
 
 ### Évaluation
