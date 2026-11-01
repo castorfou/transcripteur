@@ -13,7 +13,7 @@ L'outil livré est écrit entièrement en Rust : Sources (cpal + rubato), Moteur
 - On accepte une itération plus lente pendant la phase de mesure, au profit d'un seul langage dans le produit.
 - Le Banc d'essai est découpé : un binaire de dev en Rust (workspace Cargo, non livré) envoie le Corpus d'essai à l'interface Moteur au rythme du temps réel et écrit le texte provisoire et le texte définitif horodatés en JSONL ; Python calcule WER, latences et RTF à partir de ce JSONL. Le Banc mesure ainsi le code livré.
 - Moteurs : crate officielle `sherpa-onnx` pour Nemotron et Parakeet ; `whisper-rs` (binding tiers, sur Codeberg) accepté pour comparer Whisper turbo, avec un FFI maison vers whisper.cpp en repli.
-- « Toujours au premier plan » sous Wayland natif n'est garanti par aucun toolkit, quel que soit le langage ; le toolkit d'UI Rust (egui, iced, Slint ou Tauri) se choisit au prototype de l'affichage live.
+- « Toujours au premier plan » sous Wayland natif n'est garanti par aucun toolkit, quel que soit le langage ; le toolkit d'UI est Slint (ADR `0003-ui-slint`).
 - Dépôt : workspace Cargo à la racine (`crates/`), `pyproject.toml` conservé pour la doc et le scoring, le paquet `src/` Python disparaît. Outillage : feature Rust du devcontainer, `cargo fmt --check` et `cargo clippy -D warnings` en pre-commit, `cargo test` et clippy en CI, Rust stable, édition 2024, runner Windows ajouté au portage.
 - La diarisation future passera par ONNX (sherpa-onnx, pyannote-rs) plutôt que pyannote.audio, qui imposerait PyTorch.
 - Le portage mobile reste ouvert (Rust Tier 2 sur Android et iOS), sans avoir pesé sur le choix.
