@@ -1,4 +1,6 @@
 # Corpus d'essai : sources et extraits. Voir docs/dev/corpus-essai.md.
+# `start` et `end` sont des temps de l'audio ; `reference_offset` est l'avance des
+# sous-titres sur l'audio à cet endroit du talk, propre à chaque coupe.
 
 [[source]]
 id = "en-fuzzing"
@@ -125,6 +127,7 @@ lang = "en"
 source = "en-wikipedia"
 start = 600
 end = 900
+reference_offset = 18.1
 
 [[extract]]
 id = "en-quantum"
@@ -133,6 +136,7 @@ lang = "en"
 source = "en-quantum"
 start = 600
 end = 900
+reference_offset = 18.1
 
 [[extract]]
 id = "de-forensik"
@@ -149,6 +153,7 @@ lang = "de"
 source = "de-klima"
 start = 600
 end = 900
+reference_offset = 17.0
 
 [[extract]]
 id = "de-datacenter"
@@ -157,6 +162,7 @@ lang = "de"
 source = "de-datacenter"
 start = 600
 end = 900
+reference_offset = 18.1
 
 [[extract]]
 id = "fr-imagination"
@@ -190,12 +196,12 @@ segments = [
   { source = "en-fuzzing", start = 1200, end = 1250 },
   { source = "de-forensik", start = 1200, end = 1250 },
   { source = "fr-imagination", start = 430, end = 480 },
-  { source = "de-klima", start = 1200, end = 1250 },
+  { source = "de-klima", start = 1200, end = 1250, reference_offset = 18.9 },
   { source = "fr-negatif", start = 430, end = 480 },
-  { source = "en-wikipedia", start = 1200, end = 1250 },
+  { source = "en-wikipedia", start = 1200, end = 1250, reference_offset = 18.1 },
   { source = "fr-hasard", start = 430, end = 480 },
-  { source = "en-quantum", start = 1200, end = 1250 },
-  { source = "de-datacenter", start = 1200, end = 1250 },
+  { source = "en-quantum", start = 1200, end = 1250, reference_offset = 18.1 },
+  { source = "de-datacenter", start = 1200, end = 1250, reference_offset = 18.1 },
   { source = "fr-imagination", start = 490, end = 540 },
   { source = "en-fuzzing", start = 1260, end = 1310 },
   { source = "de-forensik", start = 1260, end = 1310 },

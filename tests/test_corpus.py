@@ -1,14 +1,21 @@
 """Tests du découpage et de la normalisation du Corpus d'essai."""
 
+import json
+import wave
+from pathlib import Path
+
 import pytest
 
+import corpus
 from corpus import (
     Cue,
+    build_extract,
     build_srt,
     clean_cue_text,
     normalize_for_wer,
     parse_srt,
     select_cues,
+    shift_cues,
 )
 
 
@@ -88,3 +95,71 @@ def test_select_cues_drops_cues_left_empty_by_cleaning() -> None:
 def test_build_srt_round_trips() -> None:
     cues = [Cue(0.0, 1.5, "a"), Cue(61.25, 62.0, "b")]
     assert parse_srt(build_srt(cues)) == cues
+
+
+def test_shift_cues_moves_subtitles_onto_the_audio_clock() -> None:
+    assert shift_cues([Cue(20.0, 22.5, "a")], 18.0) == [Cue(2.0, 4.5, "a")]
+
+
+@pytest.fixture
+def fake_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[dict]:
+    """Remplace téléchargement et coupe : seules les bornes demandées comptent."""
+    monkeypatch.setattr(corpus, "AUDIO_DIR", tmp_path)
+    monkeypatch.setattr(corpus, "REFERENCE_DIR", tmp_path)
+    cuts: list[dict] = []
+    subtitles = {
+        "decale": [Cue(t + 18.0, t + 19.0, f"mot{t}") for t in range(10)],
+        "juste": [Cue(float(t), t + 1.0, f"wort{t}") for t in range(10)],
+    }
+
+    def fake_cut(audio: Path, start: float, end: float, destination: Path) -> None:
+        cuts.append({"audio": audio, "start": start, "end": end})
+        with wave.open(str(destination), "wb") as out:
+            out.setnchannels(1)
+            out.setsampwidth(2)
+            out.setframerate(corpus.SAMPLE_RATE)
+            out.writeframes(b"\0\0" * int(corpus.SAMPLE_RATE * (end - start)))
+
+    monkeypatch.setattr(corpus, "fetch_reference", lambda s: subtitles[s["id"]])
+    monkeypatch.setattr(corpus, "fetch_audio", lambda s: s["id"])
+    monkeypatch.setattr(corpus, "_cut", fake_cut)
+    return cuts
+
+
+SOURCES = {
+    "decale": {"id": "decale", "lang": "en"},
+    "juste": {"id": "juste", "lang": "fr"},
+}
+
+
+def test_build_extract_cuts_audio_where_the_shifted_subtitles_fall(
+    fake_sources: list[dict], tmp_path: Path
+) -> None:
+    extract = {
+        "id": "e",
+        "source": "decale",
+        "start": 2,
+        "end": 5,
+        "reference_offset": 18.0,
+    }
+    build_extract(extract, SOURCES)
+    assert fake_sources == [{"audio": "decale", "start": 2.0, "end": 5.0}]
+    assert (tmp_path / "e.txt").read_text() == "mot2 mot3 mot4\n"
+    assert parse_srt((tmp_path / "e.srt").read_text())[0].start == 0.0
+
+
+def test_build_extract_reports_the_real_cuts_of_a_montage(
+    fake_sources: list[dict], tmp_path: Path
+) -> None:
+    extract = {
+        "id": "m",
+        "segments": [
+            {"source": "decale", "start": 1, "end": 4, "reference_offset": 18.0},
+            {"source": "juste", "start": 2, "end": 4},
+        ],
+    }
+    build_extract(extract, SOURCES)
+    assert json.loads((tmp_path / "m-segments.json").read_text()) == [
+        [0.0, 3.0, "en"],
+        [4.0, 6.0, "fr"],
+    ]
