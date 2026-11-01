@@ -12,7 +12,7 @@ Le Texte provisoire vient de Nemotron 3.5 ASR Streaming 0.6B (fenêtre de 320 ms
 ## Consequences
 
 - L'outil exige un GPU compatible avec Vulkan pour son Texte définitif. Le repli sur une machine sans un tel GPU reste à décider.
-- Les seuils sont relevés : p95 < 5 s pour le Texte définitif (la lecture prime sur la latence), et 2,6 Go de mémoire GPU comprise, à revoir avec l'UI.
+- Les seuils sont relevés : p95 < 5 s pour le Texte définitif (la lecture prime sur la latence), et 3 Go de mémoire GPU comprise pour l'outil assemblé, UI incluse.
 - `sherpa-onnx` est lié en feature `shared`. En statique, il entre en conflit à l'édition de liens avec whisper.cpp. Le packaging devra livrer ses bibliothèques partagées.
 - La Langue parlée vient d'un détecteur séparé, parce que la crate `sherpa-onnx` n'expose pas l'étiquette de langue de Nemotron. Whisper tiny se trompe sur environ 1,7 % des Énoncés, et peut alors forcer Whisper turbo dans la mauvaise langue.
 - ggml exige des en-têtes Vulkan récents et un accès au nœud de rendu, voir `docs/dev/environnement-rust.md`.

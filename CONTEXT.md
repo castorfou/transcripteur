@@ -7,7 +7,7 @@ Outil de transcription multi-langue : il capte de l'audio, le transcrit dans la 
 ### Chaîne de traitement
 
 **Source** :
-Ce d'où provient l'audio à transcrire, toujours en temps réel : micro ou Son système. L'outil ne lit jamais de fichier lui-même ; pour transcrire une vidéo, l'utilisateur la joue et l'outil capte le Son système.
+Ce d'où provient l'audio à transcrire, toujours en temps réel : micro ou Son système. Une Source suit le périphérique par défaut du système : en changer ne change pas de Source. L'outil ne lit jamais de fichier lui-même ; pour transcrire une vidéo, l'utilisateur la joue et l'outil capte le Son système.
 _Avoid_ : entrée, input, plugin d'entrée
 
 **Son système** :
@@ -34,8 +34,12 @@ Une écoute, du lancement jusqu'à la fermeture de l'outil ou au lancement d'une
 _Avoid_ : enregistrement, run
 
 **Pause** :
-Interruption de l'écoute au sein d'une Session : l'Énoncé en cours est clos, puis rien n'est capté ni transcrit jusqu'à la reprise, et ce qui est dit entre-temps est perdu. La Session continue, son horloge aussi, et ses réglages ne changent pas.
+Interruption de l'écoute au sein d'une Session, demandée par l'utilisateur ou causée par la Perte de la Source : l'Énoncé en cours est clos, puis rien n'est capté ni transcrit jusqu'à la reprise, et ce qui est dit entre-temps est perdu. La Session continue, son horloge aussi, et ses réglages ne changent pas. Seule une Pause causée par la Perte de la Source se reprend d'elle-même.
 _Avoid_ : suspension
+
+**Perte de la Source** :
+La Source ne fournit plus d'audio du tout : plus aucun périphérique, flux en erreur ou bloqué, sortie de veille. Le silence n'est pas une Perte de la Source, même prolongé.
+_Avoid_ : déconnexion, coupure
 
 **Arrêt** :
 Pause suivie de l'écran de fin, d'où l'utilisateur peut encore reprendre. L'Arrêt ne termine pas la Session.
