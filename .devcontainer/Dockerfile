@@ -17,3 +17,20 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends pulseaudio-utils libasound2-plugins \
     && rm -rf /var/lib/apt/lists/* \
     && printf 'pcm.!default pulse\nctl.!default pulse\n' > /etc/asound.conf
+
+# Compilation des crates natives Rust : whisper-rs (cmake, libclang pour bindgen), cpal (en-têtes
+# ALSA). Texte définitif sur iGPU (#23) : chargeur Vulkan et glslc pour ggml, pilote RADV de Mesa
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake clang libclang-dev pkg-config \
+        libasound2-dev libvulkan-dev glslc mesa-vulkan-drivers vulkan-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# ggml n'accepte pas les en-têtes Vulkan de bookworm (1.3.239) : version figée dans
+# /usr/local/include, qui passe avant /usr/include
+RUN curl -fsSL https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/v1.4.309.tar.gz \
+        -o /tmp/vulkan-headers.tgz \
+    && echo "437925ada160d86ed763d29dcb9318c1bb0d024d7deaf77bc7c170b8eb6b6f10  /tmp/vulkan-headers.tgz" \
+        | sha256sum -c - \
+    && tar xzf /tmp/vulkan-headers.tgz --strip-components=2 -C /usr/local/include \
+        Vulkan-Headers-1.4.309/include \
+    && rm /tmp/vulkan-headers.tgz
