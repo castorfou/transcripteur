@@ -1,6 +1,7 @@
 //! PROTOTYPE jetable : essai de Slint pour la forme de l'affichage live.
 
 use commun::Flux;
+use slint::platform::{PointerEventButton, WindowEvent};
 use slint::winit_030::WinitWindowAccessor;
 use slint::{ComponentHandle, Model, ModelRc, Timer, TimerMode, VecModel};
 use std::rc::Rc;
@@ -290,7 +291,19 @@ fn main() -> Result<(), slint::PlatformError> {
     app.on_quitter(|| commun::quitter());
     let copie = app.as_weak();
     app.on_deplacer(move || {
-        copie.unwrap().window().with_winit_window(|w| w.drag_window());
+        // Le compositeur prend le pointeur et Slint ne verra jamais le relâchement : sans ces
+        // événements, la TouchArea garderait la souris et capterait tous les clics suivants.
+        let copie = copie.clone();
+        Timer::single_shot(Duration::ZERO, move || {
+            let app = copie.unwrap();
+            let fenetre = app.window();
+            fenetre.with_winit_window(|w| w.drag_window());
+            fenetre.dispatch_event(WindowEvent::PointerReleased {
+                position: slint::LogicalPosition::default(),
+                button: PointerEventButton::Left,
+            });
+            fenetre.dispatch_event(WindowEvent::PointerExited);
+        });
     });
 
     let copie = app.as_weak();
