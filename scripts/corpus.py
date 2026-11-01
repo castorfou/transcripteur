@@ -8,6 +8,7 @@ Ni l'un ni l'autre n'est versionné : le manifeste fige les URL et les empreinte
 
 import argparse
 import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -111,6 +112,11 @@ def select_cues(cues: list[Cue], start: float, end: float) -> list[Cue]:
             if text:
                 selected.append(replace(cue, text=text))
     return selected
+
+
+def shift_cues(cues: list[Cue], offset: float) -> list[Cue]:
+    """Ramène des sous-titres en avance de `offset` secondes sur l'horloge de l'audio."""
+    return [replace(c, start=c.start - offset, end=c.end - offset) for c in cues]
 
 
 def _download(url: str, destination: Path) -> None:
@@ -226,13 +232,16 @@ def _duration(path: Path) -> float:
 def build_extract(extract: dict, sources: dict[str, dict]) -> None:
     """Crée l'audio et la référence d'un extrait, à partir d'un ou plusieurs segments."""
     wav = AUDIO_DIR / f"{extract['id']}.wav"
-    parts, shifted, offset = [], [], 0.0
+    parts, shifted, cuts, offset = [], [], [], 0.0
     for index, segment in enumerate(extract.get("segments", [extract])):
         source = sources[segment["source"]]
         start, end = segment["start"], segment["end"]
         cues = []
         if extract.get("reference", True):
-            cues = select_cues(fetch_reference(source), start, end)
+            cues = shift_cues(
+                fetch_reference(source), segment.get("reference_offset", 0.0)
+            )
+            cues = select_cues(cues, start, end)
             start, end = cues[0].start, cues[-1].end
         part = AUDIO_DIR / f"{extract['id']}.part{index}.wav"
         if not wav.exists():
@@ -242,6 +251,7 @@ def build_extract(extract: dict, sources: dict[str, dict]) -> None:
             replace(c, start=c.start - start + offset, end=c.end - start + offset)
             for c in cues
         ]
+        cuts.append([round(offset, 3), round(offset + end - start, 3), source["lang"]])
         offset += end - start + SILENCE_BETWEEN_SEGMENTS_S
     if parts:
         _concatenate(parts, wav)
@@ -254,6 +264,10 @@ def build_extract(extract: dict, sources: dict[str, dict]) -> None:
         (REFERENCE_DIR / f"{extract['id']}.txt").write_text(
             normalize_for_wer(" ".join(c.text for c in shifted)) + "\n",
             encoding="utf-8",
+        )
+    if "segments" in extract:
+        (REFERENCE_DIR / f"{extract['id']}-segments.json").write_text(
+            json.dumps(cuts), encoding="utf-8"
         )
     print(f"{extract['id']} : {_duration(wav):.0f} s, {len(shifted)} sous-titres")
 

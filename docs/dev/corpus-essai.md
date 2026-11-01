@@ -12,6 +12,7 @@ Le Corpus d'essai sert à juger la qualité et la latence de l'outil. Le Banc d'
 | Fichiers source téléchargés | `data/raw/corpus/sources/` | non |
 | Référence normalisée pour le WER | `data/processed/corpus/<id>.txt` | non |
 | Référence horodatée lisible, recalée sur l'extrait | `data/processed/corpus/<id>.srt` | non |
+| Coupes réelles d'un montage : début, fin, langue | `data/processed/corpus/<id>-segments.json` | non |
 
 Les références ne sont pas versionnées : les pages sources n'indiquent pas de licence pour les sous-titres. Le manifeste fige leur empreinte SHA-256, et la construction s'arrête si une référence change à la source, car les mesures ne seraient plus comparables.
 
@@ -21,7 +22,7 @@ Les références ne sont pas versionnées : les pages sources n'indiquent pas de
 uv run --active --extra corpus python scripts/corpus.py
 ```
 
-Le script ne recrée que ce qui manque. L'option `--only` limite la construction à certains extraits :
+Le script ne recrée que l'audio manquant et réécrit toujours les références. Après un changement de bornes ou de décalage dans le manifeste, supprimer le `.wav` de l'extrait concerné. L'option `--only` limite la construction à certains extraits :
 
 ```bash
 uv run --active --extra corpus python scripts/corpus.py --only de-klima multilingue
@@ -40,6 +41,18 @@ L'ensemble occupe environ 600 Mo. `yt-dlp` fonctionne sans runtime JavaScript et
 
 - **EN et DE** : talks de media.ccc.de, sous-titrés par la communauté c3subtitles. Seuls les fichiers relus sont retenus ; le préfixe `DRAFT_` de leur nom signale les transcriptions non relues.
 - **FR** : TEDx sur YouTube, avec une piste de sous-titres français manuelle. Les pistes automatiques sont exclues.
+
+## Décalage des références
+
+Les sous-titres des talks 36c3 sont en avance sur le MP3 d'environ 18 s : à l'instant `t` de l'audio, le sous-titre affiché porte `t + reference_offset`. Le décalage se note sur chaque extrait et chaque segment, et `start` et `end` restent des temps de l'audio.
+
+| Source | `reference_offset` |
+| --- | --- |
+| `en-wikipedia`, `en-quantum`, `de-datacenter` | 18,1 s sur tout le talk |
+| `de-klima` | 17,0 s jusqu'à environ 1200 s, 18,9 s ensuite |
+| `en-fuzzing`, `de-forensik`, `fr-*` | aucun |
+
+Le décalage se mesure mot à mot, sans minimiser le WER : on aligne la référence sur les mots horodatés de Parakeet, puis on prend la médiane de l'écart entre temps du sous-titre et temps du mot, par tranche de 5 min. Sa dispersion, de l'ordre de ±0,3 s, reste bien en dessous de la durée d'un sous-titre CCC.
 
 ## Normalisation
 
