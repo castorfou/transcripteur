@@ -39,3 +39,9 @@ GPU du processus.
   est ici en couleur soulignée.
 - Slint fournit `WindowMoveArea` et `resize-border-width` ; egui et iced demandent d'écrire
   les poignées de bord.
+
+## Essai Slint
+
+Disposition de la forme validée : en-tête, historique, live, commandes. Le live a une hauteur
+fixe, texte calé en bas ; il suit le direct tant qu'on n'a pas remonté l'historique, avec barre
+orange et pastille « Revenir au direct » sinon.
