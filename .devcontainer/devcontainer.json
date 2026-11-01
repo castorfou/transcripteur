@@ -101,6 +101,12 @@
         },
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "moby": false
+        },
+        // Rust stable, édition 2024 (docs/adr/0001-stack-rust.md)
+        "ghcr.io/devcontainers/features/rust:1": {
+            "version": "stable",
+            "profile": "minimal",
+            "components": "rustfmt,clippy"
         }
     },
     // Montages : HOME persistant propre au projet (survit aux rebuilds), cache pre-commit,
@@ -129,7 +135,7 @@
     // Configuration du shell et de l'environnement
     "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
     // À chaque démarrage : recrée /tmp/venv s'il manque (/tmp peut être un tmpfs vidé au démarrage)
-    "postStartCommand": "bash .devcontainer/scripts/ensure_venv.sh && echo '🚀 transcripteur - Environnement prêt!'",
+    "postStartCommand": "bash .devcontainer/scripts/ensure_venv.sh && bash .devcontainer/scripts/ensure_render_group.sh && echo '🚀 transcripteur - Environnement prêt!'",
     // Utilisateur non-root pour la sécurité
     "remoteUser": "vscode",
     // Fermer la fenêtre VS Code arrête le conteneur, sinon il tourne jusqu'au prochain
