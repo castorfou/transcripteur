@@ -21,6 +21,9 @@ const PHRASES: &[&str] = &[
     "So let's take a closer look at what happens when the model runs on the edge",
 ];
 
+const LANGUES: &[&str] =
+    &["EN", "EN", "DE", "DE", "FR", "FR", "EN", "DE", "FR", "EN"];
+
 /// Période de décodage du Moteur retenu (Nemotron 320 ms).
 pub const PERIODE_TICK: Duration = Duration::from_millis(320);
 /// Une Session d'1 h à un énoncé toutes les 2,4 s.
@@ -35,6 +38,7 @@ pub struct Mot {
 #[derive(Clone, Debug)]
 pub struct Enonce {
     pub debut_s: u32,
+    pub langue: &'static str,
     pub mots: Vec<Mot>,
 }
 
@@ -46,7 +50,8 @@ impl Enonce {
             .enumerate()
             .map(|(i, mot)| Mot { texte: mot.to_owned(), modifie: (i + index) % 5 == 0 })
             .collect();
-        Self { debut_s: (index as f32 * 2.4) as u32, mots }
+        let langue = LANGUES[index % LANGUES.len()];
+        Self { debut_s: (index as f32 * 2.4) as u32, langue, mots }
     }
 
     pub fn horodatage(&self) -> String {
@@ -60,6 +65,7 @@ impl Enonce {
 }
 
 pub struct Flux {
+    pub courante: &'static str,
     pub historique: Vec<Enonce>,
     pub dernier: Enonce,
     pub provisoire: Vec<String>,
@@ -74,6 +80,7 @@ impl Flux {
         let historique: Vec<_> = (0..ENONCES_1H).map(Enonce::depuis_phrase).collect();
         let dernier = historique[ENONCES_1H - 1].clone();
         Self {
+            courante: dernier.langue,
             historique,
             dernier,
             provisoire: Vec::new(),
@@ -83,8 +90,13 @@ impl Flux {
         }
     }
 
+    fn courante_enonce(&self) -> &'static str {
+        if self.provisoire.is_empty() { self.dernier.langue } else { self.courant.langue }
+    }
+
     fn avancer(&mut self) {
         self.version += 1;
+        self.courante = self.courante_enonce();
         if self.provisoire.len() < self.courant.mots.len() {
             let mot = &self.courant.mots[self.provisoire.len()];
             let texte = if mot.modifie { mot.texte.to_lowercase() } else { mot.texte.clone() };
